@@ -20,12 +20,19 @@ All notable changes to this project are documented here.
 - Health OpenAPI response now describes the required status value "ok" while
   preserving the existing response body and status code.
 - Placeholder scan no longer matches its own documented regex and examples.
+- Fresh checkouts create the private pytest temporary parent before pytest's
+  basetemp setup. Smoke temporary-directory creation is also recursive and
+  idempotent, requesting mode 0o700.
 
 ### Verified locally on 2026-10-17
 
-- 114 tests pass through both pytest entry points, with 100.00% application
+- 117 tests pass through both pytest entry points, with 100.00% application
   statement/branch coverage. Live smoke, success/failure cleanup, and isolated
   reload startup passed on Windows / Python 3.14.0.
+- Reproduced the missing-parent failure (101 setup errors), then passed both
+  entry points after deleting `.tmp` before each run. A fresh local clone with
+  a new Python 3.14 venv passed installation, available gates and live smoke;
+  the clone was deleted afterward. Hosted CI rerun and Docker remain unverified.
 
 ## 0.1.0 - 2026-10-16
 

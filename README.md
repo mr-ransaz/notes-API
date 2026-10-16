@@ -214,6 +214,9 @@ random test-only secret per test function. Temporary databases live in ignored
 `pyproject.toml`. Tests cover auth failures, JWT validation, user isolation,
 pagination/search, input limits, error sanitization, rate limiting (including
 concurrent attempts), and health. They do not run the Docker image or a browser.
+Conftest creates `.tmp` and `.tmp/pytest` before temporary fixtures are used;
+fresh checkouts require no manual directory creation. Regression tests cover
+missing/existing temp directories and separate databases for each test.
 
 The separate live smoke script starts the project's venv Python with Uvicorn on
 a free localhost port, supplies a random environment secret and temporary SQLite
@@ -238,8 +241,7 @@ httpx TestClient backend without deprecation warnings; see `NOTES.md`.
 The GitHub Actions workflow targets Ubuntu and Python 3.14, with read-only
 repository permissions and major-version action pins. Its test job runs both
 pytest entry points; a separate job builds `notes-api:ci` without publishing it.
-**Hosted CI has not run
-as part of local development; its status is unverified.**
+**A hosted CI rerun with the temporary-directory fix remains unverified.**
 
 ## Security
 

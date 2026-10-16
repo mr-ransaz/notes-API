@@ -183,8 +183,57 @@
   check, ruff format --check, module pytest, executable pytest, git diff --check,
   placeholder scan, and live README/smoke checks. Docker unavailable on PATH,
   so the conditional build was explicitly skipped.
-- Final suite: 114 tests pass through each pytest entry point; application
+- At that checkpoint: 114 tests passed through each pytest entry point; application
   coverage is 100.00% with branches enabled (325 statements, 38 branches, none
   missing). The separate subprocess smoke script is outside that coverage scope.
 - `pip check` reported no broken requirements. No push, tags, repository creation,
   hosted CI success, or Docker success is claimed.
+
+## Missing temporary parent fix - 2026-10-17
+
+- Session start confirmed clean main at 08efeb6 and Python 3.14.0 after reading
+  AGENTS.md and STATE.md. No release tag was mentioned in STATE.
+- The user reported 101 Ubuntu CI setup errors. Removing the local ignored
+  `.tmp` directory reproduced 13 passed / 101 errors, with FileNotFoundError on
+  `.tmp/pytest`. This is pytest's built-in creation of the configured basetemp,
+  not an explicit mkdir in the original project fixture: pytest does not create
+  the parent for a supplied `--basetemp` path.
+- `pytest_configure` now creates both `.tmp` and `.tmp/pytest` using mode 0o700,
+  parents=True and exist_ok=True before `tmp_path` is requested. The existing
+  function-scoped settings/client fixtures and unique per-test databases remain.
+- Tracked-source search found one additional temp-directory creator: the smoke
+  helper. Its mkdir now also specifies mode 0o700 and recursive/idempotent flags.
+  No runtime dependency or application behavior changed.
+- Three regression cases were added: nested pytest with no temp parent; nested
+  pytest with existing temp directories; and smoke temp directories with missing
+  ancestors. Nested pytest uses the actual copied conftest and registers the same
+  username in two separate tests, which both succeed against distinct SQLite
+  files. Smoke contexts also use separate directories and clean them up.
+- The nested minimal projects disable plugin autoload to isolate fixture setup
+  from outer pytest/coverage configuration. The full application coverage gate
+  remains enabled for both top-level pytest runs. POSIX mode assertions are
+  present but were not executed on Windows.
+- Deleted `.tmp` independently before each full venv entry point:
+  `.venv/Scripts/python.exe -m pytest -q` and `.venv/Scripts/pytest.exe -q`.
+  Both passed 117 tests with 100.00% branch-enabled application coverage.
+- Ran the requested `git clone . ..\notes-api-fresh-check` at test commit
+  2d3d7dd. Confirmed `.tmp` absent after checkout and still absent after install.
+  Created a new `.venv` there with `py -3.14 -m venv .venv` (Python 3.14.0), then
+  installed `.[dev]` with cache disabled. `pip check` found no broken requirements.
+  Bootstrap/install temp storage was kept inside the disposable clone.
+- Fresh-clone ruff check, format --check, both pytest entry points (117 tests
+  each; 100.00% coverage), git diff --check and placeholder scan passed. All 19
+  README curl commands passed in Windows PowerShell 5.1 and PowerShell 7.6.5
+  with a supplied public test password prompt and real localhost HTTP.
+- Removed the clone's `.tmp` again before smoke. All live smoke checks passed,
+  exit 0, including process-tree shutdown and temporary SQLite cleanup.
+- Deleted the entire disposable sibling clone, including its venv. A separate
+  existence check confirmed `..\notes-api-fresh-check` no longer exists.
+  Local verification helpers/logs stay inside this repo's ignored build/.tmp.
+- All available gates were run after the fix and test commits; the same gates
+  apply to the documentation checkpoint. Final application coverage is 100.00%
+  (325 statements, 38 branches, none missing), with a 90% minimum still enforced.
+- Docker was unavailable on PATH in both working copies, so no Docker build/run
+  is claimed. Fresh-clone verification was on Windows, not Ubuntu. A hosted CI
+  rerun, Linux behavior and browser Authorize flow remain unverified.
+- No pushes, tags, dependency changes or external repository changes were made.
