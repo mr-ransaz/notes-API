@@ -236,7 +236,9 @@ Dependencies were installed and exercised on Windows with Python 3.14.0.
 Starlette and AnyIO have explicit compatibility pins to retain the requested
 httpx TestClient backend without deprecation warnings; see `NOTES.md`.
 The GitHub Actions workflow targets Ubuntu and Python 3.14, with read-only
-repository permissions and major-version action pins. **Hosted CI has not run
+repository permissions and major-version action pins. Its test job runs both
+pytest entry points; a separate job builds `notes-api:ci` without publishing it.
+**Hosted CI has not run
 as part of local development; its status is unverified.**
 
 ## Security

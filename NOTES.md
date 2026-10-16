@@ -52,9 +52,9 @@
 - Docker executable is not installed / not on PATH; build and run unverified.
 - Browser `/docs` walkthrough, GitHub repository creation, first push, and hosted
   CI execution are left to the owner. No push or tags are created locally.
-- A live Uvicorn HTTP session and the README curl commands were not exercised.
-  Tests request `/docs` and validate its OAuth2 OpenAPI configuration using
-  TestClient; this does not verify browser Authorize behavior.
+- Live Uvicorn HTTP and the README curl block were verified on 2026-10-17;
+  see the follow-up record below. Browser Authorize behavior and human-entered
+  password prompting remain unverified.
 
 ## Stage 1 results
 
@@ -134,3 +134,57 @@
 - `python -m uvicorn --version`: Uvicorn 0.54.0 / CPython 3.14.0 on Windows.
 - No hosted CI success, Docker success, live browser success, or constant-time
   authentication timing is asserted. No push, remote creation, or tags.
+
+## Follow-up verification - 2026-10-17
+
+- Session start: read AGENTS.md and STATE.md, confirmed clean main at 46ca726
+  and Python 3.14.0. STATE mentioned no release tag to resolve.
+- Documentation was handled first because the placeholder scan matched its own
+  examples in AGENTS.md. Equivalent character-class regex spelling removes
+  those self-matches without excluding files or weakening the matching rules.
+- README curl login reproduced an HTTP failure: `--data-binary '@-'` preserves
+  PowerShell's appended line ending in the form password. Switching only the
+  login form to `--data '@-'` fixed it; URI-encoded password characters remain
+  intact. This behavior is described in the official
+  [curl manual](https://curl.se/docs/manpage.html#-d).
+- All 19 curl-block commands passed individually on Windows PowerShell
+  5.1.26100.9711 and PowerShell 7.6.5 against real localhost HTTP and isolated
+  databases. Only Read-Host was supplied by the local verification harness,
+  using a public synthetic password. No password or token was printed.
+  The line after `$securePassword = $null` was already correctly separated.
+- Git's tracked-file list and normal project file discovery each found exactly
+  one README.md and no leftover copy.
+- `scripts/smoke_test.py` passed with exit 0: health, registration/duplicates/
+  password validation, form login/me, missing/tampered tokens, notes CRUD and
+  search, foreign-owner 404s while the note still existed, non-vacuous pagination,
+  and five failed logins followed by 429 plus Retry-After.
+- The smoke subprocess uses the venv interpreter, a free 127.0.0.1 port, an
+  environment-only random secret, and a project-local temporary SQLite file.
+  It forces PYTHONPATH to this checkout's src: inspection found an older copied
+  package in site-packages that otherwise could hide changes. Final live checks
+  used the checkout. No dependencies were added.
+- Windows' built-in taskkill stops the owned process tree in finally; bounded
+  cleanup retries handle SQLite file locks briefly outliving the launcher.
+  Both success cleanup and an injected failure were exercised: failure
+  propagated, the HTTP server stopped, and its temporary directory disappeared.
+  Temporary files from initial failed harness attempts were also removed.
+- README activation and key-generation examples passed; key output was checked
+  in memory without printing it. Reload startup passed on a free port and
+  isolated database, including process-tree cleanup. The existing venv was
+  reused; fresh-venv bootstrap/reinstallation was not repeated in this session.
+- CI now has `python -m pytest` and `pytest -q` in the test job, plus an independent
+  `docker build -t notes-api:ci .` job. Major action pins, read-only permissions,
+  and disabled credential persistence remain. Workflow content was reviewed;
+  hosted execution and Docker execution remain unverified.
+- The health OpenAPI regression test first failed on the old arbitrary string
+  dictionary schema, then passed with HealthResponse/status Literal["ok"].
+  The existing 200 / {"status":"ok"} behavior test still passes.
+- Available post-commit gates passed after each implementation commit: ruff
+  check, ruff format --check, module pytest, executable pytest, git diff --check,
+  placeholder scan, and live README/smoke checks. Docker unavailable on PATH,
+  so the conditional build was explicitly skipped.
+- Final suite: 114 tests pass through each pytest entry point; application
+  coverage is 100.00% with branches enabled (325 statements, 38 branches, none
+  missing). The separate subprocess smoke script is outside that coverage scope.
+- `pip check` reported no broken requirements. No push, tags, repository creation,
+  hosted CI success, or Docker success is claimed.
