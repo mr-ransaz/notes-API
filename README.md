@@ -169,6 +169,7 @@ src/notes_api/
   main.py               # App factory and startup
   routers/              # Auth, users, notes
 tests/                  # Isolated temporary SQLite tests
+scripts/smoke_test.py    # Real localhost HTTP checks on Windows
 pyproject.toml          # Python 3.14, dependencies, ruff, pytest, coverage
 Dockerfile
 .dockerignore
@@ -213,6 +214,21 @@ random test-only secret per test function. Temporary databases live in ignored
 `pyproject.toml`. Tests cover auth failures, JWT validation, user isolation,
 pagination/search, input limits, error sanitization, rate limiting (including
 concurrent attempts), and health. They do not run the Docker image or a browser.
+
+The separate live smoke script starts the project's venv Python with Uvicorn on
+a free localhost port, supplies a random environment secret and temporary SQLite
+database, and checks auth, notes, ownership, pagination, and failed-login limits
+over real HTTP. It prints PASS/FAIL labels without credentials, exits 0 only on
+success, and stops its Windows process tree and removes the database afterward.
+It uses the standard library, Windows' built-in `taskkill.exe`, and the existing
+httpx development dependency. No additional dependencies are required.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\smoke_test.py
+```
+
+This command was run successfully on Windows / Python 3.14.0. It does not verify
+browser interaction or Docker execution, and it does not use the local notes.db.
 
 Dependencies were installed and exercised on Windows with Python 3.14.0.
 Starlette and AnyIO have explicit compatibility pins to retain the requested
