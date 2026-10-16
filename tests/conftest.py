@@ -15,6 +15,7 @@ def settings(tmp_path) -> Settings:
         _env_file=None,
         secret_key=secrets.token_urlsafe(48),
         database_url=f"sqlite:///{(tmp_path / 'test.db').as_posix()}",
+        access_token_expire_minutes=30,
     )
 
 

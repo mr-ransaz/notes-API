@@ -42,9 +42,9 @@ def decode_access_token(token: str, settings: Settings) -> int:
     )
     subject = claims["sub"]
     # Keep the subject in the same canonical form as issued IDs.
-    if not subject.isascii() or not subject.isdecimal() or len(subject) > 18:
+    if not subject.isascii() or not subject.isdecimal() or len(subject) > 19:
         raise jwt.InvalidTokenError("Invalid subject")
     user_id = int(subject)
-    if user_id < 1 or str(user_id) != subject:
+    if not 1 <= user_id <= 2**63 - 1 or str(user_id) != subject:
         raise jwt.InvalidTokenError("Invalid subject")
     return user_id

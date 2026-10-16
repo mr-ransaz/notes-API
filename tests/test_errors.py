@@ -66,3 +66,35 @@ def test_swagger_oauth2_schema(client):
     flow = schema["components"]["securitySchemes"]["OAuth2PasswordBearer"]["flows"]
     assert flow["password"]["tokenUrl"] == "auth/login"
     assert client.get("/docs").status_code == 200
+    errors = schema["paths"]["/auth/register"]["post"]["responses"]["422"]
+    assert errors["content"]["application/json"]["schema"]["$ref"].endswith(
+        "/ErrorResponse"
+    )
+    patch_title = schema["components"]["schemas"]["NotePatch"]["properties"]["title"]
+    assert patch_title["type"] == "string"
+
+
+def test_login_unknown_and_repeated_fields(client):
+    response = client.post(
+        "/auth/login", data={"username": "alice", "password": "wrong", "admin": "true"}
+    )
+    assert response.status_code == 422
+    response = client.post(
+        "/auth/login",
+        content="username=alice&password=wrong&password=other",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 422
+
+
+def test_bad_json_and_missing_form_fields(client):
+    response = client.post(
+        "/auth/register",
+        content='{"password":',
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+    response = client.post("/auth/login", data={"username": "alice"})
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"

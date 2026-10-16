@@ -44,3 +44,10 @@ def test_token_expiry_bounds(minutes):
             secret_key=secrets.token_urlsafe(48),
             access_token_expire_minutes=minutes,
         )
+
+
+def test_configuration_errors_do_not_print_secret():
+    invalid_secret = secrets.token_urlsafe(8)
+    with pytest.raises(ValidationError) as exc:
+        Settings(_env_file=None, secret_key=invalid_secret)
+    assert invalid_secret not in str(exc.value)

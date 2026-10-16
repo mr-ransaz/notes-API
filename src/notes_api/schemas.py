@@ -8,6 +8,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from pydantic.json_schema import SkipJsonSchema
 
 
 class InputModel(BaseModel):
@@ -56,8 +57,8 @@ class NoteCreate(InputModel):
 
 
 class NotePatch(InputModel):
-    title: Title | None = None
-    body: Body | None = None
+    title: Title | SkipJsonSchema[None] = None
+    body: Body | SkipJsonSchema[None] = None
 
     @field_validator("title", "body")
     @classmethod
@@ -87,3 +88,19 @@ class NoteResponse(BaseModel):
     id: int
     title: str
     body: str
+
+
+class ErrorDetail(BaseModel):
+    location: list[str | int]
+    type: str
+    message: str
+
+
+class ErrorBody(BaseModel):
+    code: str
+    message: str
+    details: list[ErrorDetail]
+
+
+class ErrorResponse(BaseModel):
+    error: ErrorBody

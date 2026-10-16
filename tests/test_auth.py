@@ -6,7 +6,12 @@ import pytest
 from sqlalchemy import select
 
 from notes_api.models import User
-from notes_api.security import hash_password, verify_password
+from notes_api.security import (
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    verify_password,
+)
 
 
 def test_register_login_me(client, password, settings):
@@ -70,7 +75,9 @@ def test_password_length_boundaries(client, password):
     )
 
 
-@pytest.mark.parametrize("username", ["ab", "a" * 33, "a-b", "éabc", " abc", "a\n"])
+@pytest.mark.parametrize(
+    "username", ["ab", "a" * 33, "a-b", "éabc", " abc", "a\n", "abc\n"]
+)
 def test_invalid_username(client, password, username):
     assert (
         client.post(
@@ -122,7 +129,8 @@ def test_login_input_limits(client, field):
         {"sub": "missing"},
         {"sub": "0"},
         {"sub": "01"},
-        {"sub": "1" * 19},
+        {"sub": "1" * 20},
+        {"sub": "9223372036854775808"},
         {"sub": "١"},
         {"sub": "999"},
         {"sub": 1},
@@ -197,3 +205,9 @@ def test_missing_or_malformed_token(client, authorization):
 def test_invalid_stored_hash():
     assert not verify_password("anything", "invalid hash")
     assert not verify_password("wrong", hash_password("a different value"))
+
+
+@pytest.mark.parametrize("user_id", [1, 2**63 - 1])
+def test_token_subject_supports_sqlite_integer_bounds(settings, user_id):
+    token = create_access_token(user_id, settings)
+    assert decode_access_token(token, settings) == user_id
