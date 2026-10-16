@@ -60,3 +60,19 @@
 - Ordered gates: ruff check passed; ruff format --check passed; pytest passed;
   git diff --check passed. Docker unavailable, so build skipped explicitly.
 - No login rate limiting yet; it is scheduled for stage 3.
+
+## Stage 2 results
+
+- Added notes CRUD. Every note lookup filters on both ID and authenticated
+  owner ID; foreign notes and absent notes return the same 404 response.
+- Indexed `owner_id`; list results are ordered by ascending ID before applying
+  limit/offset. Default limit 20, maximum 100, offset bounded to SQLite's signed
+  64-bit integer range. No total count is returned.
+- Search uses SQLAlchemy bound parameters and `icontains(..., autoescape=True)`
+  on title/body; `%`, `_`, and the escape character are literal. SQLite's default
+  case folding is ASCII-oriented. Search input is limited to 200 characters.
+- Create requires a nonblank title; body defaults to empty. PATCH requires at
+  least one field; explicit null and unknown fields are rejected. Empty body is
+  allowed. Character limits are 200 / 10000, not byte limits.
+- Ordered gates passed: ruff check, ruff format --check, pytest (98 tests,
+  100.00% statement and branch coverage), git diff --check. Docker unavailable.

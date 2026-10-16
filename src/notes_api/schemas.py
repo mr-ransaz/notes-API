@@ -1,4 +1,13 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Annotated, Self
+
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 class InputModel(BaseModel):
@@ -27,3 +36,54 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+def nonblank_title(value: str) -> str:
+    if not value.strip():
+        raise ValueError("Title cannot be only whitespace")
+    return value
+
+
+Title = Annotated[
+    str, Field(min_length=1, max_length=200), AfterValidator(nonblank_title)
+]
+Body = Annotated[str, Field(max_length=10000)]
+
+
+class NoteCreate(InputModel):
+    title: Title
+    body: Body = ""
+
+
+class NotePatch(InputModel):
+    title: Title | None = None
+    body: Body | None = None
+
+    @field_validator("title", "body")
+    @classmethod
+    def reject_null(cls, value: str | None) -> str:
+        if value is None:
+            raise ValueError("Note fields cannot be null")
+        return value
+
+    @model_validator(mode="after")
+    def require_field(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("Provide at least one note field")
+        return self
+
+
+class NoteQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    limit: int = Field(default=20, ge=1, le=100)
+    offset: int = Field(default=0, ge=0, le=2**63 - 1)
+    q: str | None = Field(default=None, max_length=200)
+
+
+class NoteResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    body: str
