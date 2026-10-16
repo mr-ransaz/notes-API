@@ -23,8 +23,8 @@
 - README claims and captured outputs must be verified by execution.
   Clearly separate local/mocked checks from unverified external services
   (Docker, hosted CI, live network). Never claim an unrun check passed.
-- No placeholders in committed files (YOUR_USERNAME, Your Name, TODO,
-  changeme). Use the real values from the Project profile.
+- No dummy identity/secret values or unfinished-work markers in committed
+  files. Use the real values from the Project profile.
 - Small Conventional Commits (feat:, fix:, test:, docs:, ci:, chore:) with
   explicit paths. Do not push, rewrite history, reset unrelated changes,
   or touch anything outside the project folder.
@@ -38,7 +38,7 @@
 4. `.\.venv\Scripts\pytest.exe -q`
 5. `git diff --check`
 6. Placeholder scan:
-   `git grep -n -i -E "YOUR_USERNAME|Your Name|TODO|FIXME|changeme"`
+   `git grep -n -i -E "YOUR[_]USERNAME|Your[ ]Name|TO[D]O|FIX[M]E|change[m]e"`
    must be empty (except documented placeholders in .env.example).
 7. Docker build only if docker exists; otherwise list as manual check.
 8. Verify every runnable README example and its output/exit code.

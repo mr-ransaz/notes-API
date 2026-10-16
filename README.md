@@ -115,6 +115,8 @@ Use `curl.exe` explicitly because Windows PowerShell may alias `curl` to
 problems. UTF-8 stdin is selected explicitly for Windows PowerShell 5.1 as well
 as PowerShell 7. The login body URI-encodes the entered password before sending it.
 The password prompt is hidden; examples use a fresh username `alice`.
+The login command uses `--data '@-'` to remove the line ending PowerShell adds
+to stdin; URI-encoded password characters are preserved.
 
 ```powershell
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -125,7 +127,7 @@ $password = [System.Net.NetworkCredential]::new('', $securePassword).Password
 @{username='alice'; password=$password} | ConvertTo-Json -Compress | curl.exe --silent --show-error --fail-with-body "$base/auth/register" -H 'Content-Type: application/json' --data-binary '@-'
 
 $loginBody = 'username=alice&password=' + [Uri]::EscapeDataString($password)
-$login = $loginBody | curl.exe --silent --show-error --fail-with-body "$base/auth/login" -H 'Content-Type: application/x-www-form-urlencoded' --data-binary '@-' | ConvertFrom-Json
+$login = $loginBody | curl.exe --silent --show-error --fail-with-body "$base/auth/login" -H 'Content-Type: application/x-www-form-urlencoded' --data '@-' | ConvertFrom-Json
 $token = $login.access_token
 $password = $null
 $loginBody = $null
@@ -145,6 +147,11 @@ Use a recent curl supporting `--fail-with-body` (7.76 or later). A second
 registration of `alice` returns 409. Tokens and passwords are sensitive; avoid
 sharing terminal output containing them. Clearing variables does not guarantee
 that their former contents have been erased from process memory.
+
+All 19 commands in this block were executed line by line over localhost HTTP
+on Windows PowerShell 5.1 and PowerShell 7.6.5. The interactive password prompt
+was supplied by a test harness using a public synthetic password. Browser
+interaction and a human-entered prompt remain manual checks.
 
 ## Project layout
 
@@ -181,11 +188,15 @@ Install the development extra, then run in this order:
 ```powershell
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m ruff format --check .
+.\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\pytest.exe -q
 git diff --check
+git grep -n -i -E "YOUR[_]USERNAME|Your[ ]Name|TO[D]O|FIX[M]E|change[m]e"
 # When Docker is installed:
 docker build -t notes-api:0.1.0 .
 ```
+
+The placeholder scan must produce no matches (Git exit code 1 means no matches).
 
 Both pytest entry points are supported. To use the literal commands, activate the
 venv first (`.\.venv\Scripts\Activate.ps1`), then run `python -m pytest` or `pytest`.
