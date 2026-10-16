@@ -67,7 +67,7 @@ def stop_server(process: subprocess.Popen) -> None:
 @contextmanager
 def temporary_directory() -> Iterator[Path]:
     temporary_root = ROOT / ".tmp"
-    temporary_root.mkdir(exist_ok=True)
+    temporary_root.mkdir(mode=0o700, parents=True, exist_ok=True)
     temporary = tempfile.TemporaryDirectory(prefix="smoke-", dir=temporary_root)
     try:
         yield Path(temporary.name)

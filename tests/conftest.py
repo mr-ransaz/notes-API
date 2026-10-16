@@ -9,6 +9,13 @@ from notes_api.config import Settings
 from notes_api.main import create_app
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    # Pytest creates --basetemp without creating its parent directory.
+    temporary_root = config.rootpath / ".tmp"
+    temporary_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    (temporary_root / "pytest").mkdir(mode=0o700, parents=True, exist_ok=True)
+
+
 @pytest.fixture
 def settings(tmp_path) -> Settings:
     return Settings(
