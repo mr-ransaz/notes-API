@@ -10,7 +10,7 @@ from notes_api.database import create_database, init_db
 from notes_api.errors import install_error_handlers
 from notes_api.rate_limit import LoginRateLimiter
 from notes_api.routers import auth, notes, users
-from notes_api.schemas import ErrorResponse
+from notes_api.schemas import ErrorResponse, HealthResponse
 from notes_api.security import hash_password
 
 
@@ -43,9 +43,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(users.router)
     app.include_router(notes.router)
 
-    @app.get("/health", tags=["health"])
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    @app.get("/health", tags=["health"], response_model=HealthResponse)
+    def health() -> HealthResponse:
+        return HealthResponse(status="ok")
 
     return app
 

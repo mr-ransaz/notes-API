@@ -9,6 +9,18 @@ def test_health_and_foreign_keys(client):
         assert session.scalar(text("PRAGMA foreign_keys")) == 1
 
 
+def test_health_response_schema(client):
+    schema = client.get("/openapi.json").json()
+    response = schema["paths"]["/health"]["get"]["responses"]["200"]
+    response_schema = response["content"]["application/json"]["schema"]
+    assert response_schema.get("$ref") == "#/components/schemas/HealthResponse"
+    health_schema = schema["components"]["schemas"]["HealthResponse"]
+    assert health_schema["required"] == ["status"]
+    assert health_schema["properties"]["status"]["const"] == "ok"
+    assert health_schema["properties"]["status"]["type"] == "string"
+    assert "additionalProperties" not in health_schema
+
+
 def test_reject_unknown_fields_and_hide_password(client, password):
     response = client.post(
         "/auth/register",
