@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=82"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "notes-api"
+version = "0.1.0"
+description = "A small REST API for private personal notes"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+license = "MIT"
+authors = [{name = "MR Ransaz"}]
+dependencies = [
+    "fastapi==0.143.3",
+    "starlette==0.52.1",
+    "anyio==4.11.0",
+    "uvicorn==0.54.0",
+    "SQLAlchemy==2.1.4",
+    "pydantic==2.14.1",
+    "pydantic-settings==2.16.0",
+    "argon2-cffi==25.1.0",
+    "PyJWT==2.15.1",
+    "python-multipart==0.0.32",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "httpx==0.28.1",
+    "ruff==0.17.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "src"]
+addopts = "--basetemp=.tmp/pytest --cov=notes_api --cov-branch --cov-report=term-missing --cov-fail-under=90"
+filterwarnings = ["error"]
+tmp_path_retention_policy = "all"
+
+[tool.coverage.run]
+branch = true
+source = ["notes_api"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
