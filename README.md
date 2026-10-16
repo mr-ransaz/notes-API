@@ -220,6 +220,8 @@ a free localhost port, supplies a random environment secret and temporary SQLite
 database, and checks auth, notes, ownership, pagination, and failed-login limits
 over real HTTP. It prints PASS/FAIL labels without credentials, exits 0 only on
 success, and stops its Windows process tree and removes the database afterward.
+The subprocess imports this checkout's `src` directory so a stale installed
+copy of notes-api cannot hide changes under test.
 It uses the standard library, Windows' built-in `taskkill.exe`, and the existing
 httpx development dependency. No additional dependencies are required.
 

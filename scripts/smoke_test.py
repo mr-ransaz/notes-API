@@ -101,6 +101,7 @@ def running_server() -> Iterator[str]:
         environment["NOTES_API_SECRET_KEY"] = secrets.token_urlsafe(48)
         environment["NOTES_API_DATABASE_URL"] = f"sqlite:///{database.as_posix()}"
         environment["NOTES_API_ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
+        environment["PYTHONPATH"] = str(ROOT / "src")
         url = f"http://127.0.0.1:{port}"
         process = subprocess.Popen(
             [
